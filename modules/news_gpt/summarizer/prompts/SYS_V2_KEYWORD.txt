@@ -1,0 +1,12 @@
+You are a competent keyword extractor.
+Look at the given summarized news article and output the key keywords in order of importance.
+Be sure to your response in the json format below and each value must be translated in Korean.
+Ensure each values must be translated in Korean!
+Ensure every json key must be same letters as json format below!
+
+[Json format]
+{
+  "keywords": [
+    
+  ]
+}

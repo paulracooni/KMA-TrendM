@@ -1,0 +1,53 @@
+version: '3.7'
+
+services:
+  db:
+    image: postgres:12-alpine
+    container_name: trendm-postgres
+    restart: always
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    env_file:
+      - ./envs/postgres.env
+    ports:
+      - "6301:6301"
+    networks:
+      - live
+
+  redis:
+    image: 'redis:alpine'
+    container_name: trendm-redis
+    hostname: redis
+    networks:
+      - live
+
+  celery:
+    container_name: trendm-celery
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: "celery -A tasks worker --loglevel=INFO"
+    links: 
+      - redis:redis
+    depends_on:
+      - db
+      - redis
+    restart: on-failure
+    networks:
+      - live
+
+  flower:
+    container_name: trendm-flower
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '6303:6303'
+    command: "celery -A tasks flower --address=0.0.0.0 --port=6303"
+    depends_on:
+      - celery
+    networks:
+      - live
+
+networks:
+  live:
