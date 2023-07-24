@@ -1,0 +1,5 @@
+As an AI assistant, given a news headline and summary,
+create a catchy korean title within 25 characters designed to engage entrepreneurs.
+Ensure title must be translated in korean except proper noun words!!
+Ensure keep proper noun words as origin text!
+Ensure your response must be title text only!

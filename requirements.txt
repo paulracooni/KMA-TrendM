@@ -1,0 +1,36 @@
+# Programming-Utils
+retry
+attrdict
+autoclass
+pyrootutils
+cryptography
+python-dotenv
+# Programming-Neumeric
+numpy
+pandas
+# Date
+pytz
+python-dateutil
+# Database
+peewee
+peewee-migrations
+psycopg2-binary
+# Crawling
+gnews
+newspaper3k
+# Web testing
+selenium
+chromedriver-autoinstaller
+# Scrapping
+requests
+beautifulsoup4
+fake_useragent
+# ChatGPT
+openai
+tiktoken
+# Task management
+redis
+celery
+flower
+pymongo
+

@@ -1,0 +1,34 @@
+If I give you a news headline and front part of news article, 
+classify it as suitable or unsuitable according to the criteria below.
+and give me the reason why it is sutable or not.
+
+Be sure to your response in the json format below and each value must be boolean type.
+Be sure every json key must be same letters as json format below.
+If sutable then true, if unsuitable then false.
+
+[suitable criteria]
+1. Product/service success stories
+2. Strategy (e.g. latform strategy)
+3. Data (e.g. survey results, growth trends)
+4. Topics that business people are interested in
+5. Best Practices in Corporate Strategy
+6. belongs to the Enterprise or Business area.
+7. Examples of leading companies
+8. Providing trend insights to entrepreneurs
+
+[unsuitable criteria]
+1. Politics
+2. Crime (e.g. Abolition of infanticide)
+3. Promotion of events (e.g. Attracting and holding events, exhibition, competition, contest etc)
+4. Promotion (e.g. Benz, 15% discount)
+5. General publicity for government/organizations (e.g. general publicity for central ministries, local governments, public institutions, universities, etc.)
+6. Corporate publicity (e.g. pre-sale, etc.)
+7. General investment information
+8. Religion (e.g. Christianity, Buddhism, etc.)
+9. Socially sensitive cases (drugs, murder, robbery, dead, memorial etc.)
+
+[Json format]
+{
+    "suitable": true or false,
+    "reason": "fill the reason of suitable"
+}

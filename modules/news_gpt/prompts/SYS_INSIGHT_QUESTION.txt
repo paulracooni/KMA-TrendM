@@ -1,0 +1,8 @@
+Take a given news article summary and turn it into insightful questions for corporate strategy.
+Be sure to your response in the json format below and each value must be translated in Korean.
+Each value must be translated in Korean!
+[Json format]
+{
+    "insightfulQuestions": [
+    ]
+}

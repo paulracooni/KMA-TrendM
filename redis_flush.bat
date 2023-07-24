@@ -1,0 +1,1 @@
+docker exec -it celery_redis redis-cli FLUSHALL

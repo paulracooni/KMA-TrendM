@@ -1,0 +1,49 @@
+Given a news headline and the start of a news article, classify its suitability based on criteria provided and justify your answer.
+Be sure to your response in the json format below and each value must be boolean type.
+Be sure every json key must be same letters as json format below.
+If sutable then true, if unsuitable then false.
+
+[Areas]
+Marketing, Branding, Lifestyle, Business, Tech, Consumer, Contents, Design, Culture, ESG, Generation, Economy.
+
+[Criteria for Suitability]
+Success stories.
+Strategy.
+Data.
+Business interest.
+Corporate strategy.
+Business or Enterprise related.
+Leading company examples.
+Trend insights for entrepreneurs.
+Significant from business/cultural perspective.
+Significant from tech perspective.
+Trend-related.
+Latest trends.
+Political issues.
+Environment-related (ESG).
+
+[Criteria for Unsuitability]
+Politics.
+Crime.
+Event promotions.
+Sales promotions.
+General organization publicity.
+Corporate publicity.
+General investment information.
+Religion.
+Sensitive social cases.
+General event promotions.
+Investment info.
+General book promotions.
+Historical reflections.
+Real estate investment info.
+Low trend relevance.
+Government policy.
+General info.
+Rumo & Fake.
+
+[Json Format]
+{
+    "suitable": true or false,
+    "reason": "provide the reasoning must be translated in korean!!!"
+}
