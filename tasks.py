@@ -4,6 +4,7 @@ DIR_ROOT = pyrootutils.setup_root(__file__)
 from itertools import chain as it_chain
 from celery import Celery
 from celery import chain, group
+from celery.schedules import crontab
 
 from utils import Env
 from modules import Deduplicator
@@ -31,16 +32,30 @@ def read_topics():
             for keyword in f.readlines() ]
     return keywords
 
+#region Celery configure
 celery  = Celery(
     __name__,
     broker                             = Env.get('CELERY_BROKER'),
     backend                            = Env.get('CELERY_BACKEND'),
     broker_connection_retry            = True,
     broker_connection_retry_on_startup = True,
-    broker_connection_max_retries      = 10,
-)
+    broker_connection_max_retries      = 10, )
 
+celery.conf.timezone = 'Asia/Seoul'
 celery.autodiscover_tasks()
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    sender.add_periodic_task(
+        crontab(hour=0, minute=0),
+        task_trendm.s(), )
+#endregion
+
+
+#region Celery task define
+@celery.task(name="my_add", bind=True)
+def my_add(self, a, b):
+    return a + b
 
 @celery.task(name="crawling_news_en", bind=True)
 def crawling_news_en(self, topic):
@@ -82,29 +97,53 @@ def clean_and_filter_ids(ids):
     if ids and isinstance(ids, list) and isinstance(ids[0], list):
         ids = list(it_chain.from_iterable(ids))
     return list(filter(lambda id: id != None , ids))
+#endregion
 
 
 #region Workflows
-@celery.task(name="task_collect_en", bind=True, trail=True)
-def task_collect_en(self):
-    return group(*( chain(
-            crawling_news_en.s(topic),
-            deduplicate.s(),)
-        for topic in read_topics()))()
+@celery.task(name="task_trendm", bind=True)
+def task_trendm(self, ):
 
-@celery.task(name="task_collect_kr", bind=True, trail=True)
-def task_collect_kr(self):
-    return group(*( chain(
-            crawling_news_kr.s(keyword),
-            deduplicate.s(),)
-        for keyword in read_keywords()))()
+    params = dict(propagate=False, disable_sync_subtasks=False)
 
-@celery.task(name='task_analysis')
-def task_analysis(self, news_ids):
-    return group(*[
+    # Crawlng task
+    task_collect_en = group(*( chain(
+        crawling_news_en.s(topic),
+        deduplicate.s(),)
+    for topic in read_topics()))
+
+    task_collect_kr = group(*(chain(
+        crawling_news_kr.s(keyword, 5),
+        deduplicate.s(),)
+    for keyword in read_keywords()))
+
+    res_tc_en = flatten_and_filter_type(
+        task_collect_en.delay().join_native(**params), int)
+
+    res_tc_kr = flatten_and_filter_type(
+        task_collect_kr.delay().join_native(**params), int)
+
+    news_ids = res_tc_en + res_tc_kr
+
+    # Analysis Task
+    task_analysis = group(*(
         gpt_analysis.s(news_id)
-    for news_id in news_ids])()
+        for news_id in news_ids ))
+
+    result_ids = flatten_and_filter_type(
+        task_analysis.delay().join_native(**params), int)
+
+    # Publish Task
+    tp = publish_trend_m.delay(result_ids)
+    tp.get(**params)
 
 
+def flatten_and_filter_type(ids, type=int):
+    if ids and isinstance(ids, list) and isinstance(ids[0], list):
+        ids = list(it_chain.from_iterable(ids))
+    ids = list(filter(lambda id: isinstance(id, type), ids))
+    return ids
 
 #endregion
+
+
