@@ -165,5 +165,5 @@ db
 logs
 envs
 migrations.json
-
+migrations
 *.log

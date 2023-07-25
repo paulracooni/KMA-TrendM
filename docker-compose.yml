@@ -29,9 +29,11 @@ services:
     command: >
       sh -c "pem watch &&
             pem migrate &&
-            celery -A tasks worker --loglevel=INFO"
+            celery -A tasks worker --loglevel=INFO -B"
     links: 
       - redis:redis
+    volumes:
+      - ./migrations:/app/migrations
     depends_on:
       - postgres
       - redis
@@ -49,6 +51,7 @@ services:
     command: "celery -A tasks flower --address=0.0.0.0 --port=6303"
     depends_on:
       - celery
+      - redis
     networks:
       - live
 
