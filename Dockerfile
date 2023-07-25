@@ -11,9 +11,11 @@ WORKDIR /app
 
 COPY .env .
 COPY .project-root .
+COPY migrations.json .
 
 COPY tasks.py .
 COPY data data
+COPY tests tests
 COPY utils utils
 COPY models models
 COPY modules modules
@@ -21,6 +23,3 @@ COPY modules modules
 ADD requirements.txt .
 RUN pip install -U pip && pip install -r requirements.txt
 
-ADD migrations.json .
-RUN ["pem", "watch"]
-RUN ["pem", "migrate"]
