@@ -56,6 +56,15 @@ class NaverNewsCrawler(BaseNewsCrawler):
 
         return news_objs
 
+    def was_already_saved(self, news):
+        is_exist_origin = News.select().where(
+            News.url_origin==news['originallink']).exists()
+
+        is_exist = News.select().where(
+            News.url==news['link']).exists()
+
+        return is_exist_origin or is_exist
+
     def search_news(self, keyword):
 
         items = dict()
@@ -69,11 +78,14 @@ class NaverNewsCrawler(BaseNewsCrawler):
             if search_results == None:
                 break
             
+            # 이미 수집된 뉴스 Pass
+            search_results['items'] = list(filter(
+                self.was_already_saved, search_results['items']))
+
             # TODO: 연예 기사 필터링 - 현재는 해당 페이지가 Block 됨
             search_results['items'] = list(filter(
                 self.__is_not_entertain,
                 search_results['items'], ))
-
             # pubDate type 변경 as datetime
             for item in search_results['items']:
                 item['pubDate'] = dt_parser.parse(item['pubDate'])
@@ -141,7 +153,16 @@ class NaverNewsCrawler(BaseNewsCrawler):
         
         # News settings
         edited_items = []
+        links = []
+        links_origin = []
         for news in search_results['items']:
+            
+            # Filter already exist
+            if news['link'] in links or news['originallink'] in links_origin:
+                continue
+            else:
+                links.append(news['link'])
+                links_origin.append(news['originallink'])
 
             # Filter only naver news
             parsed_link = urlparse(news['link'])

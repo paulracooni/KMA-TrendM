@@ -10,6 +10,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 import chromedriver_autoinstaller
 
+from utils import Env
+
 PATH_TEMPLATE = Path(__file__).parent / "template" / "basic.html"
 
 class TMDriver:
@@ -33,9 +35,10 @@ class TMDriver:
 
     def __init__(self, user_info, headless=True, timeout=10):
         # Init driver
-        chromedriver_autoinstaller.install()
         options=self.__init_options(headless)
-        self.driver=webdriver.Chrome(options=options)
+        self.driver=webdriver.Remote(
+            command_executor = Env.get('SELENIUM_EXECUTOR'),
+            options          = options, )
         self.driver.maximize_window()
         # members
         self.timeout=timeout
@@ -43,10 +46,11 @@ class TMDriver:
 
     def __init_options(self, headless):
         options = webdriver.ChromeOptions()
-        options.add_argument("-ignore-ssl-errors=yes")
-        options.add_argument("-ignore-certificate-errors")
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument("--ignore-ssl-errors=yes")
+        options.add_argument("--ignore-certificate-errors")
         options.add_argument("--window-size=1920,1080")
-        options.add_argument('--ignore-certificate-errors')
         options.add_argument('--allow-running-insecure-content')
         # options.add_argument('--remote-debugging-port=9222')
         

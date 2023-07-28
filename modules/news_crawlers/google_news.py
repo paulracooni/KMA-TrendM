@@ -80,24 +80,47 @@ class GoogleNewsCrawler(BaseNewsCrawler):
 
         return news_objs
 
+    def was_already_saved(self, news):
+        is_exist_origin = News.select().where(
+            News.url_origin==news['url_origin']).exists()
+
+        is_exist = News.select().where(
+            News.url==news['url']).exists()
+
+        return is_exist_origin or is_exist
+
     def search_news(self, topic):
 
         news_temp = self.gnews.get_news_by_topic(topic)
 
+        urls = []
+        url_origins = []
+        searched_news = []
         for n in news_temp:
             n['published_date'] = dt_parser.parse(n['published date'])
+            n['url_origin'] = self.__req_url_origin(
+                    url     = n['url'],
+                    url_pub = n['publisher']['href'], )
 
-        searched_news = sorted(list(filter(
-            lambda n: self.yesterday<=n['published_date']<=self.tommorow, news_temp)),
-            key=lambda n: n['published_date'], reverse=True,)
+            # filter already searched
+            if n['url'] not in urls and n['url_origin'] not in url_origins:
+                urls.append(n['url'])
+                url_origins.append(n['url_origin'])
+                searched_news.append(n)
+
+        searched_news = list(filter(
+            lambda n: self.yesterday<=n['published_date']<=self.tommorow, searched_news))
+
+        # filter already exist
+        searched_news = list(filter(self.was_already_saved, searched_news))
+
+        searched_news = sorted(
+            searched_news, key=lambda n: n['published_date'], reverse=True,)
 
         logger.info(f"search_news based on topic={topic}, n={len(news_temp)}")
 
         return searched_news
-    
-    def was_already_saved(self, news):
-        return News.select().where(News.url == news.url).exists()
-    
+
     def get_full_article(self, url):
         return self.gnews.get_full_article(url)
     
@@ -125,10 +148,7 @@ class GoogleNewsCrawler(BaseNewsCrawler):
         return {
             "news": {
                 "url"        : news.url,
-                "url_origin" : self.__req_url_origin(
-                    url     = news.url,
-                    url_pub = news.publisher.href, 
-                ),
+                "url_origin" : news.url_origin,
                 "title"      : article.title,
                 "article"    : article.text,
                 "description": news.description,

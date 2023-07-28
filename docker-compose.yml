@@ -21,6 +21,15 @@ services:
     networks:
       - live
 
+  selenium:
+    image: selenium/standalone-chrome
+    container_name: trendm-selenium
+    restart: always
+    volumes:
+      - ./shm:/dev/shm
+    networks:
+      - live
+
   celery:
     container_name: trendm-celery
     build:
@@ -29,12 +38,13 @@ services:
     command: >
       sh -c "pem watch &&
             pem migrate &&
-            celery -A tasks worker --loglevel=INFO -B"
-    links: 
+            celery -A tasks worker --loglevel=INFO -B -E --concurrency=5"
+    links:
       - redis:redis
     volumes:
       - ./migrations:/app/migrations
     depends_on:
+      - selenium
       - postgres
       - redis
     restart: on-failure
