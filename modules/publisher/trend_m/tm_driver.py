@@ -48,6 +48,8 @@ class TMDriver:
         options.add_argument("--window-size=1920,1080")
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--allow-running-insecure-content')
+        options.add_argument('--disable-logging')
+        options.add_argument('--log-level=2')
         # options.add_argument('--remote-debugging-port=9222')
         
         if headless:
@@ -90,11 +92,11 @@ class TMDriver:
 #endregion
 
 #region posting
-    def goto_page(self, section):
-        section = section.upper()
-        assert section in self.PAGES.keys(), f"No section - {section}"
+    def goto_page(self, sector):
+        sector = sector.upper()
+        assert sector in self.PAGES.keys(), f"No sector - {sector}"
         
-        self.driver.get(urljoin(self.HOST, self.PAGES[section]))
+        self.driver.get(urljoin(self.HOST, self.PAGES[sector]))
         
         self.__get_btn(slctr=r".btn-block-right > a").click()
 
@@ -126,7 +128,10 @@ class TMDriver:
         
         return token, token_key
     
-    def _write_post(self, subject, body_html, image_url, token, token_key):
+    def _write_post(self, subject, body_html, image_url, token, token_key, sector):
+
+        page_name = self.PAGES[sector.upper()]
+
         session = requests.Session()
         for cookie in self.driver.get_cookies():
             session.cookies.set(cookie['name'], cookie['value'])
@@ -144,7 +149,7 @@ class TMDriver:
             },
             data = {
                 'idx'            : 0,
-                'menu_url'       : "/idea_marketing/", # TODO: Categorization
+                'menu_url'       : f"/{page_name}/", # TODO: Categorization
                 'back_url'       : "",
                 "back_page_num"  : "",
                 "board_code"     : params_url['board'],
@@ -157,7 +162,7 @@ class TMDriver:
                 "category_type"  : 0,
                 "write_token"    : token,
                 "write_token_key": token_key,
-                "is_secret_post" : "no",
+                "is_secret_post" : "ok", # ok or no
                 "subject"        : subject,
                 "body"           : body_html
             }
@@ -167,12 +172,12 @@ class TMDriver:
             raise RuntimeError(
                 f"TMDriver._make_token error - status_code={response.status_code}")
         
-        pattern = r"\/idea_marketing\/\?bmode=view&idx=([0-9]+)&back_url=&t=board&page="
+        pattern = r"idx=([0-9]+)&"
         code = re.findall(pattern, response.text)[0]
-
+        print(response.text)
         return urljoin(
             self.HOST, 
-            f"/idea_marketing/?bmode=view&idx={code}&back_url=&t=board&page=")
+            f"/{page_name}/?bmode=view&idx={code}&back_url=&t=board&page=")
 #endregion
 
 #post-deletion

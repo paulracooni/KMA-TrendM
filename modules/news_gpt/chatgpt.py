@@ -19,8 +19,6 @@ openai.api_key      = Env.get("OPENAI_API_KEY")
 openai.organization = Env.get("OPENAI_ORGANIZATION")
 
 
-
-
 def init_prompts():
     exts = ".txt"
     DIR_PROMPTS = Path(__file__).parent / 'prompts'
@@ -67,7 +65,7 @@ class ChatGPT:
 #endregion
 
 #region GPT single request process
-    @retry(tries=1, delay=1)
+    # @retry(tries=1, delay=0)
     def __call__(self, input_data):
 
         user_prompt, news = self.prep_user_prompt(input_data)

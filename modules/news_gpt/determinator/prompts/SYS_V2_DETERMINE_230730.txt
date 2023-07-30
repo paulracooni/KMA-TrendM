@@ -28,6 +28,7 @@ Political issues.
 Environment-related (ESG).
 
 Criteria for Unsuitability:
+Blog post.
 Straight news.
 Sketch news.
 Interview news.
@@ -36,14 +37,16 @@ Politics.
 Crime.
 Event promotions.
 Sales promotions.
-General organization publicity.
 Corporate publicity.
-General investment information.
 Religion.
 Sensitive social cases.
-General event promotions.
 Investment info.
 General book promotions.
+General health tips.
+General event promotions.
+General investment information.
+General organization publicity.
+General Tips and Suggestions
 Historical reflections.
 Real estate investment info.
 Low trend relevance.

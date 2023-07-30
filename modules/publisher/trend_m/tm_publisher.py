@@ -41,7 +41,7 @@ class TMPublisher:
     def __call__(self, article_ids):
         self._init_driver()
         for article in TrendMArticle.select().where(TrendMArticle.id << article_ids):
-            if article.published: continue
+            # if article.published: continue
             self.run(article)
 
     def run(self, article, retry=3):
@@ -77,7 +77,8 @@ class TMPublisher:
             body_html = body_html,
             image_url = article.image.url,
             token     = token,
-            token_key = token_key)
+            token_key = token_key,
+            sector    = sector)
 
         logger.info(f"TMPublisher.published - {article_url}")
 
