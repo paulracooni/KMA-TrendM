@@ -139,18 +139,17 @@ def task_trendm(self, ):
     news_ids = flatten_and_filter_type(
         task_deduplicate.delay().join_native(**params), int)
 
-    print(news_ids)
     # Analysis News
-    # task_analysis = group(*(
-    #     gpt_analysis.s(news_id)
-    #     for news_id in news_ids ))
+    task_analysis = group(*(
+        gpt_analysis.s(news_id)
+        for news_id in news_ids ))
 
-    # result_ids = flatten_and_filter_type(
-    #     task_analysis.delay().join_native(**params), int)
+    result_ids = flatten_and_filter_type(
+        task_analysis.delay().join_native(**params), int)
 
     # Publish Task
-    # tp = publish_trend_m.delay(result_ids)
-    # tp.get(**params)
+    tp = publish_trend_m.delay(result_ids)
+    tp.get(**params)
 
 def groupping(task, iterable, data_type=None):
     signatures = []
