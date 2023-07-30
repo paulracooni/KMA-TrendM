@@ -13,7 +13,8 @@ logger = DbLogger(__name__.split(".")[-1])
 
 import openai
 import tiktoken
-from openai.error import APIError, RateLimitError, ServiceUnavailableError
+from openai.error import (
+    APIError, RateLimitError, ServiceUnavailableError, InvalidRequestError)
 openai.api_key      = Env.get("OPENAI_API_KEY")
 openai.organization = Env.get("OPENAI_ORGANIZATION")
 
@@ -42,13 +43,14 @@ class ChatGPT:
     price_emb = 0.0000001
 
     gpt_model  = "gpt-3.5-turbo"
-    max_token  = 4096
+    max_token  = 4097
     price_in   = 0.0000015
     pricce_out = 0.000002
     
-    temperature = 0.8
+    temperature = 0.0
     prompts = init_prompts()
 
+    debug = False
 #region Abstract methods
     @property
     def provider(self):
@@ -71,7 +73,7 @@ class ChatGPT:
         user_prompt, news = self.prep_user_prompt(input_data)
 
         result = self.was_already_done(news)
-        if result != None: return result
+        if not self.debug and result != None: return result
  
         st = time()
         content, usage = self.run(user_prompt, news)
@@ -125,7 +127,7 @@ class ChatGPT:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=cls.temperature
+            temperature = cls.temperature,
         )
         
     @classmethod

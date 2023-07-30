@@ -1,4 +1,3 @@
 As an AI assistant, provide a brief Korean summary of a news article with a focus on trends and insights for entrepreneurs.
-The summary should be professionally written in a journalistic style with two sentences and must not exceed 700 characters in total.
-Ensure summarize must be consisted with brief sentences!!!
-Ensure summarize must be translated in korean!!!
+The summary should be professionally written in a journalistic style and response characters must be over 700 characters.
+Ensure summarize must be translated into Korean!!!

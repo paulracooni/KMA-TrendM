@@ -22,6 +22,7 @@ class GptSummary(ChatGPT):
     
     def run(self, user_prompt, news):
         n_token = self.guess_n_token(self.sys_prompt_full, user_prompt)
+
         if n_token < self.max_token - 300: # pad for error
             content, usage = self.summary_short(user_prompt)
         else:
@@ -35,8 +36,8 @@ class GptSummary(ChatGPT):
     def summary_short(self, user_prompt):
         return self.as_content_and_usage(
             self.create_completion(
-                system_prompt = self.sys_prompt_full,
-                user_prompt   = user_prompt, ))
+                system_prompt  = self.sys_prompt_full,
+                user_prompt    = user_prompt,))
 
     def summary_long(self, user_prompt):
 
@@ -55,8 +56,8 @@ class GptSummary(ChatGPT):
 
         content, usage_= self.as_content_and_usage(
             self.create_completion(
-                system_prompt = self.sys_prompt_full,
-                user_prompt   = new_user_prompt))
+                system_prompt  = self.sys_prompt_full,
+                user_prompt    = new_user_prompt))
         usage += usage_
 
         return content, usage

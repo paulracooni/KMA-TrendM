@@ -7,7 +7,7 @@ logger = DbLogger(__name__.split(".")[-1])
 class GptDeterminator(ChatGPT):
     __version__ = "230723"
 
-    sys_prompt = get_prompt(__file__, "SYS_V2_DETERMINE_230723")
+    sys_prompt = get_prompt(__file__, "SYS_V2_DETERMINE_230730")
     json_format = {
         "suitable": bool,
         "reason"  : str
@@ -19,7 +19,7 @@ class GptDeterminator(ChatGPT):
     
     def prep_user_prompt(self, input_data):
         news = input_data
-        article = list(filter(bool, news.article.split("\n")))[:2]
+        article = list(filter(bool, news.article.split("\n")))[:3]
         user_prompt = f"{news.title}\n{article}"
         return user_prompt, news
 
@@ -27,7 +27,7 @@ class GptDeterminator(ChatGPT):
 
         content = self.check_top_image(news)
         if content != None:
-            return content, 0
+            raise RuntimeError("No top image news article")
         
         return self.as_content_and_usage(
             self.create_completion(
