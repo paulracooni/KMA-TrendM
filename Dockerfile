@@ -12,6 +12,8 @@ WORKDIR /app
 COPY .env .
 COPY .project-root .
 COPY migrations.json .
+COPY trendm_celery_entry.sh .
+RUN chmod 655 trendm_celery_entry.sh
 
 COPY tasks.py .
 COPY data data

@@ -1,13 +1,14 @@
 import pyrootutils
 DIR_ROOT = pyrootutils.setup_root(__file__)
-
+from datetime import datetime
 from itertools import chain as it_chain
+
 from celery import Celery
 from celery import chain, group
 from celery.schedules import crontab
 
 from utils import Env
-from modules import Deduplicator
+from modules import Deduplicator, DupRemover
 from modules.news_crawlers import GoogleNewsCrawler, NaverNewsCrawler
 from modules.news_gpt.tasks import TaskNewsAnalysis
 from modules.publisher.trend_m import TMUserInfo, TMPublisher
@@ -64,10 +65,15 @@ def crawling_news_en(self, topic):
     return [news.id for news in saved_news]
 
 @celery.task(name="crawling_news_kr", bind=True)
-def crawling_news_kr(self, keyword, max_results=20):
+def crawling_news_kr(self, keyword, max_results=5):
     crawler = NaverNewsCrawler(max_results=max_results)
     saved_news = crawler(keyword)
     return [news.id for news in saved_news]
+
+@celery.task(name="remove_dup_news", bind=True)
+def remove_dup_news(self, today=None):
+    dup_remover = DupRemover(today)
+    return dup_remover()
 
 @celery.task(name="deduplicate", bind=True)
 def deduplicate(self, news_ids, dup_th=0.9):
@@ -105,37 +111,53 @@ def clean_and_filter_ids(ids):
 def task_trendm(self, ):
 
     params = dict(propagate=False, disable_sync_subtasks=False)
+    
+    today = datetime.now().strftime("%Y-%m-%d")
 
     # Crawlng task
-    task_collect_en = group(*( chain(
-        crawling_news_en.s(topic),
-        deduplicate.s(),)
-    for topic in read_topics()))
+    task_collect_en = groupping(crawling_news_en, read_topics(), str)
+    task_collect_kr = groupping(crawling_news_kr, read_keywords(), str)
+    
+    res_tc_en = task_collect_en.delay()
+    res_tc_kr = task_collect_kr.delay()
 
-    task_collect_kr = group(*(chain(
-        crawling_news_kr.s(keyword, 5),
-        deduplicate.s(),)
-    for keyword in read_keywords()))
+    res_tc_en = res_tc_en.join_native(**params)
+    res_tc_kr = res_tc_kr.join_native(**params)
 
-    res_tc_en = flatten_and_filter_type(
-        task_collect_en.delay().join_native(**params), int)
+    # Delete duplicated News
+    removed_ids = remove_dup_news.delay(today).get(**params)
 
-    res_tc_kr = flatten_and_filter_type(
-        task_collect_kr.delay().join_native(**params), int)
+    res_collected = [
+        list(filter(lambda id: id not in removed_ids, news_ids))
+        for news_ids in list(res_tc_en) + list(res_tc_kr)
+        if isinstance(news_ids, list)
+    ]
 
-    news_ids = res_tc_en + res_tc_kr
+    # Delete simmilar News
+    task_deduplicate = groupping(deduplicate, res_collected, list)
 
-    # Analysis Task
-    task_analysis = group(*(
-        gpt_analysis.s(news_id)
-        for news_id in news_ids ))
+    news_ids = flatten_and_filter_type(
+        task_deduplicate.delay().join_native(**params), int)
 
-    result_ids = flatten_and_filter_type(
-        task_analysis.delay().join_native(**params), int)
+    print(news_ids)
+    # Analysis News
+    # task_analysis = group(*(
+    #     gpt_analysis.s(news_id)
+    #     for news_id in news_ids ))
+
+    # result_ids = flatten_and_filter_type(
+    #     task_analysis.delay().join_native(**params), int)
 
     # Publish Task
-    tp = publish_trend_m.delay(result_ids)
-    tp.get(**params)
+    # tp = publish_trend_m.delay(result_ids)
+    # tp.get(**params)
+
+def groupping(task, iterable, data_type=None):
+    signatures = []
+    for data in iterable:
+        if data_type == None or isinstance(data, data_type):
+            signatures.append(task.s(data))
+    return group(*signatures)
 
 
 def flatten_and_filter_type(ids, type=int):

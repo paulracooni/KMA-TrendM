@@ -28,7 +28,8 @@ class News(NewsDB):
     language = FixedCharField(column_name='language', verbose_name='언어', max_length=2)
 
     date_pub  = DateTimeField(column_name='datePub', verbose_name='게시일', formats='%Y-%m-%d %H:%M:%S')
-    
+    date_get  = DateTimeField(column_name='dateGet', verbose_name='수집일', formats='%Y-%m-%d')
+
 class Image(NewsDB):
     id          = BigAutoField(column_name='id', verbose_name='기본키', primary_key=True)
     url         = TextField(column_name='url', verbose_name='링크')

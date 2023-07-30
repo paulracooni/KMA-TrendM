@@ -33,10 +33,27 @@ class BaseNewsCrawler:
     def save(self, news_objs):
         saved_news = []
         for news_obj in news_objs:
+
+            if self.is_exist(
+                url        = news_obj["news"]['url'],
+                url_origin = news_obj["news"]['url_origin'],
+                title      = news_obj["news"]['title'],
+            ): continue
+
             news, created = self.__save(news_obj)
-            if created:
-                saved_news.append(news)
+
+            if created: saved_news.append(news)
+            
         return saved_news
+
+    def is_exist(self, url, url_origin, title):
+        saved_url = News.select().where(
+            News.url == url).exists()
+        saved_origin = News.select().where(
+            News.url_origin == url_origin).exists()
+        saved_title = News.select().where(
+            News.title == title).exists()
+        return saved_url or saved_origin or saved_title
 
     def __save(self, news_obj):
         with NewsDB._meta.database.atomic():

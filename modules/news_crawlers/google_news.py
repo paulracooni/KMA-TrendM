@@ -82,21 +82,35 @@ class GoogleNewsCrawler(BaseNewsCrawler):
 
     def search_news(self, topic):
 
-        news_temp = self.gnews.get_news_by_topic(topic)
-
-        for n in news_temp:
+        searched_news = []
+        for n in self.gnews.get_news_by_topic(topic):
             n['published_date'] = dt_parser.parse(n['published date'])
+            n["created_date"]   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            n["url_origin"]     = self.__req_url_origin(
+                    url     = n['url'],
+                    url_pub = n['publisher']['href'], )
+            searched_news.append(n)
 
+        # 중복된 기사 필터링
+        searched_news = list(filter(
+            lambda n: not self.is_exist(
+                url        = n['url'].strip(),
+                url_origin = n['url_origin'].strip(),
+                title      = n['title'].strip()
+            ),
+            searched_news,)
+        )
+
+        # Outdated 기사 필터링
         searched_news = sorted(list(filter(
-            lambda n: self.yesterday<=n['published_date']<=self.tommorow, news_temp)),
-            key=lambda n: n['published_date'], reverse=True,)
+                lambda n: self.yesterday<=n['published_date']<=self.tommorow,
+                searched_news,)),
+            key     = lambda n: n['published_date'],
+            reverse = True,                          )
 
-        logger.info(f"search_news based on topic={topic}, n={len(news_temp)}")
+        logger.info(f"search_news based on topic={topic}, n={len(searched_news)}")
 
         return searched_news
-    
-    def was_already_saved(self, news):
-        return News.select().where(News.url == news.url).exists()
     
     def get_full_article(self, url):
         return self.gnews.get_full_article(url)
@@ -124,15 +138,13 @@ class GoogleNewsCrawler(BaseNewsCrawler):
 
         return {
             "news": {
-                "url"        : news.url,
-                "url_origin" : self.__req_url_origin(
-                    url     = news.url,
-                    url_pub = news.publisher.href, 
-                ),
-                "title"      : article.title,
+                "url"        : news.url.strip(),
+                "url_origin" : news.url_origin.strip(),
+                "title"      : article.title.strip(),
                 "article"    : article.text,
                 "description": news.description,
                 "date_pub"   : date_pub,
+                "date_get"   : datetime.now().strftime("%Y-%m-%d"),
                 "country"    : self.country,
                 "language"   : self.language,
             },
