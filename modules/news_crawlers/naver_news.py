@@ -78,10 +78,16 @@ class NaverNewsCrawler(BaseNewsCrawler):
             if search_results == None:
                 break
             
-            # 이미 수집된 뉴스 Pass
+            # 중복된 기사 필터링
             search_results['items'] = list(filter(
-                self.was_already_saved, search_results['items']))
-
+                lambda n: not self.is_exist(
+                    url        = n['link'].strip(),
+                    url_origin = n['originallink'].strip(),
+                    title      = n['title'].strip(),
+                ),
+                search_results['items'],)
+            )
+            
             # TODO: 연예 기사 필터링 - 현재는 해당 페이지가 Block 됨
             search_results['items'] = list(filter(
                 self.__is_not_entertain,
@@ -94,21 +100,18 @@ class NaverNewsCrawler(BaseNewsCrawler):
             for item in search_results['items']:
                 item['title'] = clean_text(item['title'])
 
-            # period 설정이 되어 있는 경우 체크 및 필터링
-            if self.yesterday != None and any([
-                item['pubDate'] < self.yesterday
-                for item in search_results['items']]):
-
+            # period 설정이 되어 있는 경우
+            if self.yesterday != None:
+                # Outdated 기사 필터링
                 search_results['items'] = list(filter(
-                    lambda x: x['pubDate'] >= self.yesterday,
-                    search_results['items'], ))
+                    lambda n: self.yesterday<=n['pubDate']<=self.tommorow,
+                    search_results['items'],))
 
             for item in search_results['items']:
                 key = urlparse(item['link']).path
                 item['url'] = item['link']
                 items[key] = item
             
-            # period가 넘어간 기사가 있을 경우 검색 중지
             # max_results 이상인 경우 검색 중지
             if self.max_results!=None and len(items) > self.max_results:
                 break
@@ -221,18 +224,19 @@ class NaverNewsCrawler(BaseNewsCrawler):
         
         return {
             "news": {
-                "url"        : news.link,
-                "url_origin" : news.originallink,
-                "title"      : article.title,
+                "url"        : news.link.strip(),
+                "url_origin" : news.originallink.strip(),
+                "title"      : article.title.strip(),
                 "article"    : article.article,
                 "description": news.description,
                 "date_pub"   : news.pubDate.strftime("%Y-%m-%d %H:%M:%S"),
+                "date_get"   : datetime.now().strftime("%Y-%m-%d"),
                 "country"    : self.country,
                 "language"   : self.language,
             },
             "publisher": {
-                "name": article.publisher,
-                "url" : article.publisher_url,
+                "name": article.publisher.strip(),
+                "url" : article.publisher_url.strip(),
             },
             "reporters": article.reporters,
             "images"   : article.images,

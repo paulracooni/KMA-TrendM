@@ -17,7 +17,7 @@ class TaskNewsAnalysis:
         self.gpt_det = GptDeterminator()
 
         # summmarizer
-        self.gpt_summart  = GptSummary()
+        self.gpt_summary  = GptSummary()
         self.gpt_title    = GptTitle()
         self.gpt_insights = GptInsights()
         self.gpt_keywords = GptKeywords()
@@ -51,7 +51,7 @@ class TaskNewsAnalysis:
         return res_det.data
 
     def summarize(self, news): 
-        res_summary  = self.get_result(self.gpt_summart(news))
+        res_summary  = self.get_result(self.gpt_summary(news))
         res_title    = self.get_result(self.gpt_title(res_summary.id))
         res_insights = self.get_result(self.gpt_insights(res_summary.id))
         res_keywords = self.get_result(self.gpt_keywords(res_summary.id))

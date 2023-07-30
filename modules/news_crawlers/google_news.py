@@ -91,33 +91,34 @@ class GoogleNewsCrawler(BaseNewsCrawler):
 
     def search_news(self, topic):
 
-        news_temp = self.gnews.get_news_by_topic(topic)
-
-        urls = []
-        url_origins = []
         searched_news = []
-        for n in news_temp:
+        for n in self.gnews.get_news_by_topic(topic):
             n['published_date'] = dt_parser.parse(n['published date'])
-            n['url_origin'] = self.__req_url_origin(
+            n["created_date"]   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            n["url_origin"]     = self.__req_url_origin(
                     url     = n['url'],
                     url_pub = n['publisher']['href'], )
+            searched_news.append(n)
 
-            # filter already searched
-            if n['url'] not in urls and n['url_origin'] not in url_origins:
-                urls.append(n['url'])
-                url_origins.append(n['url_origin'])
-                searched_news.append(n)
-
+        # 중복된 기사 필터링
         searched_news = list(filter(
-            lambda n: self.yesterday<=n['published_date']<=self.tommorow, searched_news))
+            lambda n: not self.is_exist(
+                url        = n['url'].strip(),
+                url_origin = n['url_origin'].strip(),
+                title      = n['title'].strip()
+            ),
+            searched_news,)
+        )
 
-        # filter already exist
-        searched_news = list(filter(self.was_already_saved, searched_news))
+        # Outdated 기사 필터링
+        searched_news = sorted(list(filter(
+                lambda n: self.yesterday<=n['published_date']<=self.tommorow,
+                searched_news,)),
+            key     = lambda n: n['published_date'],
+            reverse = True,                          )
 
-        searched_news = sorted(
-            searched_news, key=lambda n: n['published_date'], reverse=True,)
 
-        logger.info(f"search_news based on topic={topic}, n={len(news_temp)}")
+        logger.info(f"search_news based on topic={topic}, n={len(searched_news)}")
 
         return searched_news
 
@@ -147,12 +148,13 @@ class GoogleNewsCrawler(BaseNewsCrawler):
 
         return {
             "news": {
-                "url"        : news.url,
-                "url_origin" : news.url_origin,
-                "title"      : article.title,
+                "url"        : news.url.strip(),
+                "url_origin" : news.url_origin.strip(),
+                "title"      : article.title.strip(),
                 "article"    : article.text,
                 "description": news.description,
                 "date_pub"   : date_pub,
+                "date_get"   : datetime.now().strftime("%Y-%m-%d"),
                 "country"    : self.country,
                 "language"   : self.language,
             },

@@ -35,11 +35,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: >
-      sh -c "pem watch &&
-            pem migrate &&
-            celery -A tasks worker --loglevel=INFO -B -E --concurrency=5"
-    links:
+
+    command: "./trendm_celery_entry.sh"
+    links: 
       - redis:redis
     volumes:
       - ./migrations:/app/migrations

@@ -1,0 +1,55 @@
+As an AI assistant, analyze a given news headline and the start of a news article.
+Determine its suitability based on the criteria provided, and provide a justification for your decision.
+Remember, any slight hint of unsuitability should lean towards an 'Unsuitable' classification.
+Your response should be provided in the following JSON format:
+{
+    "suitable": true or false,
+    "reason": "Justification for your decision, translated into Korean"
+}
+
+
+Areas:
+Marketing, Branding, Lifestyle, Business, Tech, Consumer, Contents, Design, Culture, ESG, Generation, Economy.
+
+Criteria for Suitability:
+Success stories.
+Strategy.
+Data.
+Business interest.
+Corporate strategy.
+Business or Enterprise related.
+Leading company examples.
+Trend insights for entrepreneurs.
+Significant from business/cultural perspective.
+Significant from tech perspective.
+Trend-related.
+Latest trends.
+Political issues.
+Environment-related (ESG).
+
+Criteria for Unsuitability:
+Blog post.
+Straight news.
+Sketch news.
+Interview news.
+advertorial news.
+Politics.
+Crime.
+Event promotions.
+Sales promotions.
+Corporate publicity.
+Religion.
+Sensitive social cases.
+Investment info.
+General book promotions.
+General health tips.
+General event promotions.
+General investment information.
+General organization publicity.
+General Tips and Suggestions
+Historical reflections.
+Real estate investment info.
+Low trend relevance.
+Government policy.
+General info.
+Rumors & Fakes.

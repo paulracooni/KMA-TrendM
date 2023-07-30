@@ -24,21 +24,38 @@ class BaseNewsCrawler:
     
     def __call__(self, keyword):
         news_objs = self.crawling(keyword)
-        saved_news = self.save(news_objs)
+        saved_news = self.save(news_objs, keyword)
         return saved_news
 
     def crawling(self, keyword):
         raise NotImplementedError
     
-    def save(self, news_objs):
+    def save(self, news_objs, keyword):
         saved_news = []
         for news_obj in news_objs:
-            news, created = self.__save(news_obj)
-            if created:
-                saved_news.append(news)
+
+            if self.is_exist(
+                url        = news_obj["news"]['url'],
+                url_origin = news_obj["news"]['url_origin'],
+                title      = news_obj["news"]['title'],
+            ): continue
+
+            news, created = self.__save(news_obj, keyword)
+
+            if created: saved_news.append(news)
+            
         return saved_news
 
-    def __save(self, news_obj):
+    def is_exist(self, url, url_origin, title):
+        saved_url = News.select().where(
+            News.url == url).exists()
+        saved_origin = News.select().where(
+            News.url_origin == url_origin).exists()
+        saved_title = News.select().where(
+            News.title == title).exists()
+        return saved_url or saved_origin or saved_title
+
+    def __save(self, news_obj, keyword):
         with NewsDB._meta.database.atomic():
             # Save publisher
             publisher, created = Publisher.get_or_create(
@@ -73,5 +90,10 @@ class BaseNewsCrawler:
                 video, _ = Video.get_or_create(
                     **video, is_top=not i, news=news)
                 image.save()
+            
+            # Save keyword
+            keyword_, _ = Keyword.get_or_create(name=keyword)
+            rel_keyword_, _ = RelNewsKeyword.get_or_create(
+                news=news, keyword=keyword_)
 
             return news, created
