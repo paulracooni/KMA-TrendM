@@ -7,8 +7,6 @@ ENV DOCKER_CONTAINER 1
 RUN mkdir /app
 WORKDIR /app
 
-
-
 COPY .env .
 COPY .project-root .
 COPY migrations.json .

@@ -161,9 +161,11 @@ cython_debug/
 
 # My custom
 .vscode
-db
+db 
+shm
 logs
 envs
+scratch
 migrations.json
 migrations
 *.log

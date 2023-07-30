@@ -12,28 +12,38 @@ class TMPublisher:
         self.user_info = user_info
 
     def _init_driver(self):
+        if not hasattr(self, 'driver'):
 
-        if hasattr(self, 'driver'):
-            try:
-                self.driver.driver.close()
-                logger.info(f"TMPublisher.driver.close")
-            except WebDriverException:
-                logger.info(f"TMPublisher.driver.already_closed")
-            
+            self.driver = TMDriver(
+                user_info = self.user_info,
+                headless  = True,
+                timeout   = 10)
+            logger.info(f"TMPublisher.driver.initialized")
+        if not self.driver.check_logined():
+            self.driver.login()
 
-        self.driver = TMDriver(
-            user_info = self.user_info,
-            headless  = True,
-            timeout   = 10)
+            logger.info(f"TMPublisher.driver.login")
 
-        logger.info(f"TMPublisher.driver.initialized")
-        try:
-            if not self.driver.check_logined():
-                self.driver.login()
-        except TimeoutException:
-            logger.info(f"TMPublisher.driver.login_error - retry")
-            return self._init_driver()
-        logger.info(f"TMPublisher.driver.login")
+        # if hasattr(self, 'driver'):
+        #     try:
+        #         self.driver.driver.close()
+        #         logger.info(f"TMPublisher.driver.close")
+        #     except WebDriverException:
+        #         logger.info(f"TMPublisher.driver.already_closed")
+
+        # self.driver = TMDriver(
+        #     user_info = self.user_info,
+        #     headless  = True,
+        #     timeout   = 10)
+
+        # logger.info(f"TMPublisher.driver.initialized")
+        # try:
+        #     if not self.driver.check_logined():
+        #         self.driver.login()
+        # except TimeoutException:
+        #     logger.info(f"TMPublisher.driver.login_error - retry")
+        #     return self._init_driver()
+        # logger.info(f"TMPublisher.driver.login")
         return self.driver
 
 

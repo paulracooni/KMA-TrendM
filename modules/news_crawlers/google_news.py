@@ -80,6 +80,15 @@ class GoogleNewsCrawler(BaseNewsCrawler):
 
         return news_objs
 
+    def was_already_saved(self, news):
+        is_exist_origin = News.select().where(
+            News.url_origin==news['url_origin']).exists()
+
+        is_exist = News.select().where(
+            News.url==news['url']).exists()
+
+        return is_exist_origin or is_exist
+
     def search_news(self, topic):
 
         searched_news = []
@@ -108,10 +117,11 @@ class GoogleNewsCrawler(BaseNewsCrawler):
             key     = lambda n: n['published_date'],
             reverse = True,                          )
 
+
         logger.info(f"search_news based on topic={topic}, n={len(searched_news)}")
 
         return searched_news
-    
+
     def get_full_article(self, url):
         return self.gnews.get_full_article(url)
     
