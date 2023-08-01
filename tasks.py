@@ -125,7 +125,8 @@ def task_trendm(self, ):
     res_tc_kr = res_tc_kr.join_native(**params)
 
     # Delete duplicated News
-    removed_ids = remove_dup_news.delay(today).get(**params)
+    removed_ids = flatten_and_filter_type(
+        remove_dup_news.delay(today).get(**params), int)
 
     res_collected = [
         list(filter(lambda id: id not in removed_ids, news_ids))

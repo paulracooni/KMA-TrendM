@@ -17,19 +17,20 @@ PATH_TEMPLATE = Path(__file__).parent / "template" / "basic.html"
 class TMDriver:
     HOST = 'https://trend-m.com'
 
+    # 비공개 페이지
     PAGES = {
-        "MARKETING" : "idea_marketing",
-        "BRANDING"  : "idea_branding",
-        "LIFESTYLE" : "idea_lifestyle",
-        "BUSINESS"  : "idea_business",
-        "TECH"      : "idea_tech",
-        "CONSUMER"  : "idea_consumer",
-        "CONTENTS"  : "idea_contents",
-        "DESIGN"    : "idea_design",
-        "CULTURE"   : "idea_culture",
-        "ESG"       : "idea_esg",
-        "GENERATION": "idea_generation",
-        "ECONOMY"   : "idea_economy",    }
+        "MARKETING" : "idea_marketing_test",
+        "BRANDING"  : "idea_branding_test",
+        "LIFESTYLE" : "idea_lifestyle_test",
+        "BUSINESS"  : "idea_business_test",
+        "TECH"      : "idea_tech_test",
+        "CONSUMER"  : "idea_consumer_test",
+        "CONTENTS"  : "idea_contents_test",
+        "DESIGN"    : "idea_design_test",
+        "CULTURE"   : "idea_culture_test",
+        "ESG"       : "idea_esg_test",
+        "GENERATION": "idea_generation_test",
+        "ECONOMY"   : "idea_economy_test",    }
 
     TEMPLATE = PATH_TEMPLATE.open("r", encoding="UTF-8").read()
 
@@ -102,7 +103,11 @@ class TMDriver:
         
         self.driver.get(urljoin(self.HOST, self.PAGES[sector]))
         
-        self.__get_btn(slctr=r".btn-block-right > a").click()
+        try:
+            self.__get_btn(slctr=r".btn-block-right > a").click() # 게시물이 존재할 때, 버튼
+        except:
+            self.__get_btn(slctr=r".btn-block-center > a").click() # 개시물이 존재하지 않을 때, 버튼
+        
 
     def _make_token(self):
         session = requests.Session()
@@ -166,7 +171,7 @@ class TMDriver:
                 "category_type"  : 0,
                 "write_token"    : token,
                 "write_token_key": token_key,
-                "is_secret_post" : "ok", # ok or no
+                "is_secret_post" : "no", # ok or no
                 "subject"        : subject,
                 "body"           : body_html
             }
