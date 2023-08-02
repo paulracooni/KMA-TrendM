@@ -1,5 +1,8 @@
 import pyrootutils
 DIR_ROOT = pyrootutils.setup_root(__file__)
+
+import random
+
 from datetime import datetime
 from itertools import chain as it_chain
 
@@ -81,8 +84,8 @@ def deduplicate(self, news_ids, dup_th=0.9):
     return deduplicator(news_ids)
 
 @celery.task(name="gpt_analysis", bind=True)
-def gpt_analysis(self, news_id):
-    task_analysis = TaskNewsAnalysis()
+def gpt_analysis(self, news_id, today):
+    task_analysis = TaskNewsAnalysis(today)
     return task_analysis(news_id=news_id)
 
 
@@ -140,10 +143,9 @@ def task_trendm(self, ):
     news_ids = flatten_and_filter_type(
         task_deduplicate.delay().join_native(**params), int)
 
+    news_ids = random.shuffle(news_ids)
     # Analysis News
-    task_analysis = group(*(
-        gpt_analysis.s(news_id)
-        for news_id in news_ids ))
+    task_analysis = group(*(gpt_analysis.s(news_id, today) for news_id in news_ids ))
 
     result_ids = flatten_and_filter_type(
         task_analysis.delay().join_native(**params), int)

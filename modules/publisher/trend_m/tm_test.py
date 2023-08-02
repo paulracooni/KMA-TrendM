@@ -9,16 +9,17 @@ from models import TrendMArticle
 from modules.publisher.trend_m.tm_user_info import TMUserInfo
 from modules.publisher.trend_m.tm_publisher import TMPublisher
 
-article = TrendMArticle.select().where(TrendMArticle.published==False).get()
 
-print(article)
+query = TrendMArticle.select().where(TrendMArticle.published==False)
+article_ids = [ a.id for a in query ]
+
+print(len(query))
 
 publisher = TMPublisher(
     user_info = TMUserInfo(
         email    = Env.get("TRENDM_ID"),
         password = Env.get("TRENDM_PASSWORD"), ))
 
-
-publisher([article.id])
+publisher(article_ids)
 
 # python modules/publisher/trend_m/tm_test.py
