@@ -37,8 +37,9 @@ class TMDriver:
     def __init__(self, user_info, headless=True, timeout=10):
         # Init driver
         options=self.__init_options(headless)
-        self.driver=webdriver.Chrome(options=options)
-
+        self.driver=webdriver.Remote(
+            command_executor = Env.get('SELENIUM_EXECUTOR'),
+            options          = options, )
         self.driver.maximize_window()
         # members
         self.timeout=timeout

@@ -21,17 +21,28 @@ services:
     networks:
       - live
 
+  selenium:
+    image: selenium/standalone-chrome
+    container_name: trendm-selenium
+    restart: always
+    volumes:
+      - ./shm:/dev/shm
+    networks:
+      - live
+
   celery:
     container_name: trendm-celery
     build:
       context: .
       dockerfile: Dockerfile
+
     command: "./trendm_celery_entry.sh"
     links: 
       - redis:redis
     volumes:
       - ./migrations:/app/migrations
     depends_on:
+      - selenium
       - postgres
       - redis
     restart: on-failure

@@ -1,10 +1,10 @@
 from time import sleep, time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 
 from utils.logger import DbLogger
-from models import NewsDB, News, Image, Video, RelNewsReporter
+from models import NewsDB, News, Image, Video, RelNewsKeyword, RelNewsReporter
 
 logger = DbLogger(__name__.split(".")[-1])
 
@@ -15,6 +15,14 @@ class DupRemover:
             if today!=None \
                 else datetime.now().strftime("%Y-%m-%d")
 
+        self.search_range = [
+            datetime.now() + timedelta(days=1),
+            datetime.now(),
+            datetime.now() - timedelta(days=1),
+            datetime.now() - timedelta(days=2),
+        ]
+
+        self.search_range = [ dt.strftime("%Y-%m-%d") for dt in self.search_range ]
 
     def __call__(self, ):
         
@@ -56,10 +64,7 @@ class DupRemover:
         return list(map(int, deleted_id))
 
     def delete_news(self, news_id):
-
-        news = News.select().where(
-            News.id==news_id, News.date_get==self.today).get()
-        
+        news = News.select().where(News.id==news_id).get()
         if news == None:
             return None
 
@@ -67,8 +72,13 @@ class DupRemover:
             Image.delete().where(Image.news == news).execute()
             Video.delete().where(Video.news == news).execute()
             RelNewsReporter.delete().where(RelNewsReporter.news == news).execute()
+            RelNewsKeyword.delete().where(RelNewsKeyword.news == news).execute()
             News.delete().where(News.id == news_id).execute()
         return news_id
 
     def get_news(self,):
-        return pd.DataFrame(list(News.select().where(News.date_get==self.today).dicts()))
+        news_date = []
+        for date_get in self.search_range:
+            news_date.extend(list(News.select().where(News.date_get==date_get).dicts()))
+
+        return pd.DataFrame(news_date)
