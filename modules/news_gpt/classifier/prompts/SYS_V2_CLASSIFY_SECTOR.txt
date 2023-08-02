@@ -39,7 +39,7 @@ common
     "contents": "",
     "design": "",
     "culture": "",
-    "eSG": "",
+    "esg": "",
     "generation": "",
     "economy": "",
   },

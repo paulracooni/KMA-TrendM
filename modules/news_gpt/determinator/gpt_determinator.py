@@ -7,10 +7,12 @@ logger = DbLogger(__name__.split(".")[-1])
 class GptDeterminator(ChatGPT):
     __version__ = "230723"
 
-    sys_prompt = get_prompt(__file__, "SYS_V2_DETERMINE_230730")
+    sys_prompt = get_prompt(__file__, "SYS_V2_DETERMINE_230802")
+    th_suitable = 0.85
     json_format = {
-        "suitable": bool,
-        "reason"  : str
+        "suitable"   : bool,
+        "suitability": float,
+        "reason"     : str
     }
 
     @property
@@ -35,16 +37,27 @@ class GptDeterminator(ChatGPT):
                 user_prompt   = user_prompt, ))
     
     def check_content(self, content, usage, news):
+
         content = self.check_json_format(content, usage, news)
+
         self.check_json_keys(content.keys(), self.json_format.keys(), usage, news)
+
         if isinstance(content['suitable'], str):
             content['suitable'] = {
                 "TRUE":True, "FALSE":False}.get(
                     content['suitable'].upper(), content['suitable'])
+
+        if not isinstance(content['suitability'], float):
+            content['suitability'] = float(content['suitability'])
+
+        if content['suitable'] and content['suitability'] < self.th_suitable:
+            content['suitable'] = False
+
         if not isinstance(content['suitable'], bool):
             message = "Not expected value type(bool)"
             logger.error(message, data=dict(usage=usage, news_id=news.id))
             raise ValueError(message)
+
         return content, usage
     
     def check_top_image(self, news):

@@ -2,7 +2,7 @@ from models import NewsDB, News, Image, GptResult, TrendMArticle
 from ..determinator import GptDeterminator
 from ..classifier import GptClsTrendIssue, GptClsSector
 from ..summarizer import GptTitle, GptSummary, GptInsights, GptKeywords
-
+from .task_checker import TaskChecker
 from utils.logger import DbLogger
 logger = DbLogger(__name__.split(".")[-1])
 
@@ -11,8 +11,9 @@ class TaskNewsAnalysis:
 
     template = "230719"
 
-    def __init__(self):
-
+    def __init__(self, today):
+        
+        self.checker = TaskChecker(today)
         # determinator
         self.gpt_det = GptDeterminator()
 
@@ -35,10 +36,17 @@ class TaskNewsAnalysis:
         if article != None:
             return article.id
 
-        determined = self.determination(news)
-        if not determined['suitable']:
-            return None
+        # Check task was done
+        is_determiated_done = self.checker.is_determiated_done(self.gpt_det)
+        is_analysis_done = self.checker.is_analysis_done(self.gpt_cls_sector)
 
+        if is_determiated_done or is_analysis_done: return None
+
+        determined = self.determination(news)
+        if not determined['suitable']: return None
+
+        if is_analysis_done: return None
+        
         summarized, result_summary_id = self.summarize(news)
         classified = self.classify(result_summary_id)
         article = self.create_trend_m_article(

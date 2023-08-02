@@ -6,9 +6,11 @@ from models import TrendMArticle
 from modules.publisher.trend_m.tm_user_info import TMUserInfo
 from modules.publisher.trend_m.tm_publisher import TMPublisher
 
-article = TrendMArticle.select()[6]
+query = TrendMArticle.select().where(TrendMArticle.published==False)
 
-print(article)
+article_ids = [ a.id for a in query ]
+
+print(len(query))
 
 publisher = TMPublisher(
     user_info = TMUserInfo(
@@ -16,4 +18,4 @@ publisher = TMPublisher(
         password = Env.get("TRENDM_PASSWORD"), ))
 
 
-publisher([article.id])
+publisher(article_ids)

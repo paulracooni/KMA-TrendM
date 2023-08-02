@@ -30,8 +30,7 @@ class CustomGnews(GNews):
             from fake_useragent import UserAgent
 
             config = Config()
-            config.browser_user_agent = UserAgent(
-                use_external_data=True, verify_ssl=True).random
+            config.browser_user_agent = UserAgent().random
             config.request_timeout = 20
 
             article = Article(url="%s" % url, language=self._language)
@@ -159,7 +158,7 @@ class GoogleNewsCrawler(BaseNewsCrawler):
     
 
     def __req_url_origin(self, url, url_pub):
-        user_agent = UserAgent(use_external_data=True, verify_ssl=True).random
+        user_agent = UserAgent().random
         response = requests.get(url=url, headers={"User-Agent": user_agent})
         urls = re.findall(r"\"https:\/\/(.*?)\"", response.text)
         urls = map(lambda url: f"https://{url}", urls)

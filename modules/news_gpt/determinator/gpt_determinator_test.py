@@ -10,15 +10,16 @@ gpt_determintor = GptDeterminator()
 
 
 # Single task
-# news = News.select()[38]
+# news = News.select()[46]
 # print(news.url_origin)
+# print(news.title)
 # result_id = gpt_determintor(news)
 # result = GptResult.select().where(GptResult.id==result_id).get()
 # pprint(result.data)
 
 
 # Multiple task
-st, et = 140, 150
+st, et = 230, 240
 result_ids = []
 for news in tqdm(News.select()[st:et]):
     try:
