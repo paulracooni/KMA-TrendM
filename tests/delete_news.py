@@ -3,7 +3,7 @@ DIR_ROOT = pyrootutils.setup_root(__file__)
 
 from tqdm import tqdm
 from datetime import datetime 
-from models import NewsDB, News, Image, Video, RelNewsKeyword, RelNewsReporter, GptResult
+from models import NewsDB, News, Image, Video, RelNewsKeyword, RelNewsReporter, GptResult, TrendMArticle
 
 def delete_news(news):
 
@@ -16,8 +16,13 @@ def delete_news(news):
         News.delete().where(News.id == news.id).execute()
     return news.id
 
-news_todays = News.select().where(News.date_get == datetime.strptime("2023-08-02", '%Y-%m-%d'))
-print(len(news_todays))
 
-for news in tqdm(news_todays):
+
+
+
+list_news = list(filter(
+    lambda news: not TrendMArticle.select().where(TrendMArticle.news==news).exists(),
+    News.select().where(News.date_get != datetime.strptime("2023-08-23", '%Y-%m-%d'))))
+
+for news in tqdm(list_news):
     delete_news(news)

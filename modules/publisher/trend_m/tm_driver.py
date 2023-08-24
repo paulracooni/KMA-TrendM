@@ -37,6 +37,11 @@ class TMDriver:
     def __init__(self, user_info, headless=True, timeout=10):
         # Init driver
         options=self.__init_options(headless)
+        # Local
+        # chromedriver_autoinstaller.install(cwd=True)
+        # from selenium.webdriver.chrome.service import Service
+        # self.driver = webdriver.Chrome(options=options)
+        # Remote
         self.driver=webdriver.Remote(
             command_executor = Env.get('SELENIUM_EXECUTOR'),
             options          = options, )
