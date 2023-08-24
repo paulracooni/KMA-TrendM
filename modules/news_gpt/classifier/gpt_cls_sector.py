@@ -21,7 +21,7 @@ class GptClsSector(ChatGPT):
             "contents"  : float,
             "design"    : float,
             "culture"   : float,
-            "eSG"       : float,
+            "esg"       : float,
             "generation": float,
             "economy"   : float,
         },

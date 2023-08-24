@@ -57,9 +57,12 @@ class NaverNewsCrawler(BaseNewsCrawler):
         return news_objs
 
     def was_already_saved(self, news):
-        is_exist_origin = News.select().where(
-            News.url_origin==news['originallink']).exists()
 
+        if news['originallink'] != None:
+            is_exist_origin = News.select().where(
+                News.url_origin==news['originallink']).exists()
+        else:
+            is_exist_origin = False
         is_exist = News.select().where(
             News.url==news['link']).exists()
 
@@ -80,11 +83,7 @@ class NaverNewsCrawler(BaseNewsCrawler):
             
             # 중복된 기사 필터링
             search_results['items'] = list(filter(
-                lambda n: not self.is_exist(
-                    url        = n['link'].strip(),
-                    url_origin = n['originallink'].strip(),
-                    title      = n['title'].strip(),
-                ),
+                lambda n: not self.was_already_saved(n),
                 search_results['items'],)
             )
             
@@ -190,7 +189,7 @@ class NaverNewsCrawler(BaseNewsCrawler):
 
     def get_full_article(self, url):
         # Request news
-        user_agent = UserAgent(use_external_data=True, verify_ssl=True).random
+        user_agent = UserAgent().random
 
         response = requests.get(
             url, headers={"User-Agent": user_agent})

@@ -6,7 +6,7 @@ class TaskChecker:
     def __init__(self, today):
 
         self.max_detreminated          = 3000
-        self.max_analysis              = 600
+        self.max_analysis              = 800
         self.max_analysis_per_category = 20
 
         self.news = News.select().where(News.date_get == today)

@@ -80,9 +80,14 @@ class GoogleNewsCrawler(BaseNewsCrawler):
         return news_objs
 
     def was_already_saved(self, news):
-        is_exist_origin = News.select().where(
-            News.url_origin==news['url_origin']).exists()
 
+        if news['url_origin'] != None:
+            is_exist_origin = News.select().where(
+                News.url_origin==news['url_origin']).exists()
+        else:
+            is_exist_origin = False
+        
+        
         is_exist = News.select().where(
             News.url==news['url']).exists()
 
@@ -101,11 +106,7 @@ class GoogleNewsCrawler(BaseNewsCrawler):
 
         # 중복된 기사 필터링
         searched_news = list(filter(
-            lambda n: not self.is_exist(
-                url        = n['url'].strip(),
-                url_origin = n['url_origin'].strip(),
-                title      = n['title'].strip()
-            ),
+            lambda n: not self.was_already_saved(n),
             searched_news,)
         )
 

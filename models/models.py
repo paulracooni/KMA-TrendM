@@ -1,6 +1,7 @@
 from peewee import *
 from playhouse.postgres_ext import *
 
+from utils import Env
 from models.databases import NewsDB
 
 # from psycopg2.extras import Json
@@ -14,8 +15,8 @@ class Publisher(NewsDB):
 
 class News(NewsDB):
     id          = BigAutoField(column_name='id', verbose_name='기본키', primary_key=True)
-    url        = TextField(column_name='url', verbose_name='링크')
-    url_origin = TextField(column_name='urlOrigin', verbose_name='원본링크', null=True, )
+    url        = TextField(column_name='url', verbose_name='링크', index=True)
+    url_origin = TextField(column_name='urlOrigin', verbose_name='원본링크', null=True, index=True)
 
     title       = CharField(column_name='title', verbose_name='제목', max_length=256, )
     description = TextField(column_name='description', verbose_name='설명', null=True, )
@@ -28,7 +29,8 @@ class News(NewsDB):
     language = FixedCharField(column_name='language', verbose_name='언어', max_length=2)
 
     date_pub  = DateTimeField(column_name='datePub', verbose_name='게시일', formats='%Y-%m-%d %H:%M:%S')
-    date_get  = DateTimeField(column_name='dateGet', verbose_name='수집일', formats='%Y-%m-%d')
+    date_get  = DateTimeField(column_name='dateGet', verbose_name='수집일', formats='%Y-%m-%d', index=True)
+
 
 class Image(NewsDB):
     id          = BigAutoField(column_name='id', verbose_name='기본키', primary_key=True)
@@ -74,14 +76,14 @@ class RelNewsKeyword(NewsDB):
 class GptResult(NewsDB):
     id       = BigAutoField(column_name='id', verbose_name='기본키', primary_key=True)
     provider = CharField(column_name="provider", verbose_name="제공자", max_length=256, )
-    news     = ForeignKeyField(column_name='news', verbose_name='뉴스', model=News, null=True)
+    news     = ForeignKeyField(column_name='news', verbose_name='뉴스', model=News, null=True, index=True)
     usage    = FloatField(column_name='usage', verbose_name='사용량(달러)', null=True)
     data     = JSONField()
 
 class TrendMArticle(NewsDB):
     id       = BigAutoField(column_name='id', verbose_name='기본키', primary_key=True)
     template = CharField(column_name="template", verbose_name="템플릿", max_length=256, )
-    news     = ForeignKeyField(column_name='news', verbose_name='뉴스', model=News)
+    news     = ForeignKeyField(column_name='news', verbose_name='뉴스', model=News, index=True)
     image    = ForeignKeyField(column_name='image', verbose_name='이미지(TOP)', model=Image, null=True)
     
     data          = JSONField()
