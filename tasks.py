@@ -118,18 +118,17 @@ def task_trendm(self, ):
     today = datetime.now().strftime("%Y-%m-%d")
 
     # Crawlng task
-    print("# Crawlng task - Start")
-    task_collect_kr = groupping(crawling_news_kr, read_keywords(), str)
-    res_tc_kr = task_collect_kr.delay()
-    res_tc_kr = res_tc_kr.join_native(**params)
+    res_tc_kr = group_run(crawling_news_kr, read_keywords(), int)
+    # task_collect_kr = groupping(crawling_news_kr, read_keywords(), str)
+    # res_tc_kr = task_collect_kr.delay()
+    # res_tc_kr = res_tc_kr.join_native(**params)
 
-    task_collect_en = groupping(crawling_news_en, read_topics(), str)
-    res_tc_en = task_collect_en.delay()
-    res_tc_en = res_tc_en.join_native(**params)
-    print("# Crawlng task - End")
+    res_tc_en = group_run(crawling_news_en, read_topics(), int)
+    # task_collect_en = groupping(crawling_news_en, read_topics(), str)
+    # res_tc_en = task_collect_en.delay()
+    # res_tc_en = res_tc_en.join_native(**params)
 
     # Delete duplicated News
-    print("# Delete duplicated News - Start")
     removed_ids = flatten_and_filter_type(
         remove_dup_news.delay(today).get(**params), int)
     
@@ -138,26 +137,25 @@ def task_trendm(self, ):
         for news_ids in list(res_tc_en) + list(res_tc_kr)
         if isinstance(news_ids, list)
     ]
-    print("# Delete duplicated News - End")
 
     # Delete simmilar News
-    print("# Delete simmilar News - Start")
-    task_deduplicate = groupping(deduplicate, res_collected, list)
-
-    news_ids = flatten_and_filter_type(
-        task_deduplicate.delay().join_native(**params), int)
-    print("# Delete simmilar News - End")
+    news_ids = group_run(deduplicate, res_collected, int)
+    news_ids = flatten_and_filter_type(news_ids, int)
+    # task_deduplicate = groupping(deduplicate, res_collected, list)
+    # news_ids = flatten_and_filter_type(
+        # task_deduplicate.delay().join_native(**params), int)
 
     news_ids = list(set(news_ids))
     random.shuffle(news_ids)
 
     # Analysis News
-    print("# Analysis News - Start")
-    task_analysis = group(*(gpt_analysis.s(news_id, today) for news_id in news_ids ))
+    news_ids = map(lambda news_id: (news_id, today), news_ids)
+    result_ids = group_run(gpt_analysis, news_ids, int)
+    result_ids = flatten_and_filter_type(result_ids, int)
+    # task_analysis = group(*(gpt_analysis.s(news_id, today) for news_id in news_ids ))
 
-    result_ids = flatten_and_filter_type(
-        task_analysis.delay().join_native(**params), int)
-    print("# Analysis News - End")
+    # result_ids = flatten_and_filter_type(
+        # task_analysis.delay().join_native(**params), int)
 
     # Publish Task
     print("# Publish Task - Start")
@@ -179,6 +177,28 @@ def flatten_and_filter_type(ids, type=int):
     ids = list(filter(lambda id: isinstance(id, type), ids))
     return ids
 
+def group_run(task_func, params, ret_type=int):
+
+    futures = []
+    for param in params:
+        if isinstance(param, tuple):
+            futures.append(task_func.delay(*param))
+        else:
+            futures.append(task_func.delay(param))
+
+    results = []
+    for future in futures:
+
+        result = future.get(propagate=False, disable_sync_subtasks=False)
+
+        if isinstance(result, list) and ret_type != list:
+            result = list(filter(lambda r: isinstance(r, ret_type), result))
+            results.append(result)
+
+        elif isinstance(result, ret_type):
+            results.append(result)
+
+    return results
 #endregion
 
 
