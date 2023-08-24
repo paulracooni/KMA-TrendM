@@ -3,7 +3,7 @@ DIR_ROOT = pyrootutils.setup_root(__file__)
 
 
 from tasks import gpt_analysis
-from models import News
+from src.models import News
 
 
 st, et = 60, 70

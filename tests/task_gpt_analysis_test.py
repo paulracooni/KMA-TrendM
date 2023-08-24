@@ -3,8 +3,8 @@ DIR_ROOT = pyrootutils.setup_root(__file__)
 
 from tqdm import tqdm
 from tasks import gpt_analysis, publish_trend_m
-from models import News, GptResult
-from modules.news_gpt import Determinator
+from src.models import News, GptResult
+from src.modules.news_gpt import Determinator
 
 
 st = 20

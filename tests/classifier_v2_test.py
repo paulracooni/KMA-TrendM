@@ -2,8 +2,8 @@ import pyrootutils
 DIR_ROOT = pyrootutils.setup_root(__file__)
 
 from tqdm import tqdm
-from models import GptResult
-from modules.news_gpt import Summarizer, ClassifierV2
+from src.models import GptResult
+from src.modules.news_gpt import Summarizer, ClassifierV2
 
 classifier = ClassifierV2()
 

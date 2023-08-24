@@ -4,7 +4,7 @@ DIR_ROOT = pyrootutils.setup_root(__file__)
 
 import pandas as pd
 from tasks import read_keywords
-from modules.news_crawlers import NaverNewsCrawler
+from src.modules.news_crawlers import NaverNewsCrawler
 
 list_news = []
 crawler = NaverNewsCrawler()

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from celery import chain, group
 
-from models import NewsDB, News, Image, Video, RelNewsReporter
+from src.models import NewsDB, News, Image, Video, RelNewsReporter
 from tasks import (
     read_keywords,
     read_topics,

@@ -9,7 +9,7 @@ from datetime import timedelta
 import pandas as pd
 from celery import chain, group
 
-from models import News
+from src.models import News
 from tasks import (
     read_keywords,
     read_topics,

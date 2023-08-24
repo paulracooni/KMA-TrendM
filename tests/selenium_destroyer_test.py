@@ -1,8 +1,8 @@
 import pyrootutils
 DIR_ROOT = pyrootutils.setup_root(__file__)
 
-from models import NewsDB, TrendMSummary
-from modules.publisher.trend_m import TMPublisher, TMDriver, TMUserInfo
+from src.models import NewsDB, TrendMSummary
+from src.modules.publisher.trend_m import TMPublisher, TMDriver, TMUserInfo
 
 
 def delete_all_post():

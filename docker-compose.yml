@@ -41,6 +41,9 @@ services:
       - redis:redis
     volumes:
       - ./migrations:/app/migrations
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./tests:/app/tests
     depends_on:
       - selenium
       - postgres

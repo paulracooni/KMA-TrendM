@@ -10,11 +10,11 @@ from celery import Celery
 from celery import chain, group
 from celery.schedules import crontab
 
-from utils import Env
-from modules import Deduplicator, DupRemover
-from modules.news_crawlers import GoogleNewsCrawler, NaverNewsCrawler
-from modules.news_gpt.tasks import TaskNewsAnalysis
-from modules.publisher.trend_m import TMUserInfo, TMPublisher
+from src.utils import Env
+from src.modules import Deduplicator, DupRemover
+from src.modules.news_crawlers import GoogleNewsCrawler, NaverNewsCrawler
+from src.modules.news_gpt.tasks import TaskNewsAnalysis
+from src.modules.publisher.trend_m import TMUserInfo, TMPublisher
 
 
 
@@ -113,7 +113,7 @@ def clean_and_filter_ids(ids):
 @celery.task(name="task_trendm", bind=True)
 def task_trendm(self, ):
 
-    params = dict(propagate=False)
+    params = dict(propagate=False, disable_sync_subtasks=False)
     
     today = datetime.now().strftime("%Y-%m-%d")
 

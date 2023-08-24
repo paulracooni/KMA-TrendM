@@ -4,7 +4,7 @@ DIR_ROOT = pyrootutils.setup_root(__file__)
 import json
 from time import sleep
 from itertools import chain as it_chain
-from models import News, TrendMArticle
+from src.models import News, TrendMArticle
 from celery import chain, group
 from tasks import (
     read_topics,

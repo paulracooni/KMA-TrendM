@@ -3,8 +3,8 @@ DIR_ROOT = pyrootutils.setup_root(__file__)
 
 from tqdm import tqdm
 from pprint import pprint
-from models import GptResult
-from modules.news_gpt import Determinator, Summarizer
+from src.models import GptResult
+from src.modules.news_gpt import Determinator, Summarizer
 
 
 q= GptResult.provider == Determinator().provider

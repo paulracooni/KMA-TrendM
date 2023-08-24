@@ -3,7 +3,7 @@ DIR_ROOT = pyrootutils.setup_root(__file__)
 
 from tqdm import tqdm
 from datetime import datetime 
-from models import NewsDB, News, Image, Video, RelNewsKeyword, RelNewsReporter, GptResult
+from src.models import NewsDB, News, Image, Video, RelNewsKeyword, RelNewsReporter, GptResult
 
 def delete_news(news):
 

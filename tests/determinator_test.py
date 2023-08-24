@@ -1,9 +1,9 @@
 import pyrootutils
 DIR_ROOT = pyrootutils.setup_root(__file__)
 
-from modules.news_gpt import Determinator
+from src.modules.news_gpt import Determinator
 from tqdm import tqdm
-from models import News, GptResult
+from src.models import News, GptResult
 
 st = 10
 et = 20

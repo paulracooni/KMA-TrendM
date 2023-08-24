@@ -4,7 +4,7 @@ DIR_ROOT = pyrootutils.setup_root(__file__)
 
 import unittest
 
-from models import GptResult
+from src.models import GptResult
 
 
 class Classifier_Test(unittest.TestCase):

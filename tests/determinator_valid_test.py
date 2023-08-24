@@ -5,8 +5,8 @@ import json
 import pandas as pd
 from tqdm import tqdm
 
-from models import News, GptResult
-from modules.news_gpt import Determinator
+from src.models import News, GptResult
+from src.modules.news_gpt import Determinator
 
 path_json = DIR_ROOT / "data" / "determinator_valid.json"
 news_ids = json.load(path_json.open("r"))

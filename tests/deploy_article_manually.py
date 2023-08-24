@@ -1,10 +1,10 @@
 import pyrootutils
 DIR_ROOT = pyrootutils.setup_root(__file__)
 
-from models import NewsDB, TrendMArticle
-from modules.publisher.trend_m import TMPublisher, TMDriver, TMUserInfo
+from src.models import NewsDB, TrendMArticle
+from src.modules.publisher.trend_m import TMPublisher, TMDriver, TMUserInfo
 
-from utils import Env
+from src.utils import Env
 
 
 sectors = dict()
