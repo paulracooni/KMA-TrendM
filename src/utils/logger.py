@@ -3,7 +3,7 @@ import logging
 from autoclass import autoargs
 from os import makedirs
 from datetime import datetime
-from src.models import NewsDB, Log
+from ..models import NewsDB, Log
 
 import pyrootutils
 ROOT_PROJ = pyrootutils.setup_root(
@@ -18,7 +18,7 @@ ROOT_PROJ = pyrootutils.setup_root(
 ROOT_LOG = ROOT_PROJ / 'logs'
 
 class DbLogger:
-    log_type = "console"
+    log_type = "file"
 
     @autoargs
     def __init__(self, name, root_log=ROOT_LOG):

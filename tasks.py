@@ -11,12 +11,14 @@ from celery import chain, group
 from celery.schedules import crontab
 
 from src.utils import Env
+from src.utils.logger import DbLogger
 from src.modules import Deduplicator, DupRemover
 from src.modules.news_crawlers import GoogleNewsCrawler, NaverNewsCrawler
 from src.modules.news_gpt.tasks import TaskNewsAnalysis
 from src.modules.publisher.trend_m import TMUserInfo, TMPublisher
 
 
+logger = DbLogger(__name__.split(".")[-1])
 
 def read_keywords():
     path_txt = DIR_ROOT / "data/input/keywords.txt"
@@ -51,7 +53,7 @@ celery.autodiscover_tasks()
 @celery.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
-        crontab(hour=0, minute=0),
+        crontab(hour=23, minute=5),
         task_trendm.s(), )
 #endregion
 
@@ -116,21 +118,24 @@ def task_trendm(self, ):
     params = dict(propagate=False, disable_sync_subtasks=False)
     
     today = datetime.now().strftime("%Y-%m-%d")
+    logger.info(f"task_trendm.today={today}", not_db=True)
 
     # Crawlng task
-    res_tc_kr = group_run(crawling_news_kr, read_keywords(), int)
-    # task_collect_kr = groupping(crawling_news_kr, read_keywords(), str)
+    logger.info(f"task_trendm start crawlng task", not_db=True)
+    task_collect_kr = groupping(crawling_news_kr, read_keywords(), str)
+    res_tc_kr = task_collect_kr().join(**params)
     # res_tc_kr = task_collect_kr.delay()
     # res_tc_kr = res_tc_kr.join_native(**params)
 
-    res_tc_en = group_run(crawling_news_en, read_topics(), int)
-    # task_collect_en = groupping(crawling_news_en, read_topics(), str)
+    # res_tc_en = group_run(crawling_news_en, read_topics(), int)
+    task_collect_en = groupping(crawling_news_en, read_topics(), str)
+    res_tc_en = task_collect_en().join(**params)
     # res_tc_en = task_collect_en.delay()
     # res_tc_en = res_tc_en.join_native(**params)
 
     # Delete duplicated News
-    removed_ids = flatten_and_filter_type(
-        remove_dup_news.delay(today).get(**params), int)
+    logger.info(f"task_trendm delete duplicated News", not_db=True)
+    removed_ids = flatten_and_filter_type(remove_dup_news(today), int)
     
     res_collected = [
         list(filter(lambda id: id not in removed_ids, news_ids))
@@ -139,8 +144,9 @@ def task_trendm(self, ):
     ]
 
     # Delete simmilar News
-    news_ids = group_run(deduplicate, res_collected, int)
-    news_ids = flatten_and_filter_type(news_ids, int)
+    logger.info(f"task_trendm delete simmilar News", not_db=True)
+    task_deduplicate = groupping(deduplicate, res_collected, list)
+    news_ids = flatten_and_filter_type(task_deduplicate().join(**params), int)
     # task_deduplicate = groupping(deduplicate, res_collected, list)
     # news_ids = flatten_and_filter_type(
         # task_deduplicate.delay().join_native(**params), int)
@@ -149,19 +155,16 @@ def task_trendm(self, ):
     random.shuffle(news_ids)
 
     # Analysis News
-    news_ids = map(lambda news_id: (news_id, today), news_ids)
-    result_ids = group_run(gpt_analysis, news_ids, int)
-    result_ids = flatten_and_filter_type(result_ids, int)
+    logger.info(f"task_trendm analysis news", not_db=True)
+    task_analysis = group(*(gpt_analysis.s(news_id, today) for news_id in news_ids ))
+    result_ids = flatten_and_filter_type(task_analysis().join(**params), int)
     # task_analysis = group(*(gpt_analysis.s(news_id, today) for news_id in news_ids ))
-
     # result_ids = flatten_and_filter_type(
         # task_analysis.delay().join_native(**params), int)
 
     # Publish Task
-    print("# Publish Task - Start")
-    tp = publish_trend_m.delay(result_ids)
-    tp.get(**params)
-    print("# Publish Task - End")
+    logger.info(f"task_trendm publish articles", not_db=True)
+    tp = publish_trend_m(result_ids)
 
 def groupping(task, iterable, data_type=None):
     signatures = []
@@ -186,8 +189,11 @@ def group_run(task_func, params, ret_type=int):
         else:
             futures.append(task_func.delay(param))
 
+    n_task = len(futures)
+    logger.info(f"task_trendm create {n_task} tasks", not_db=True)
+
     results = []
-    for future in futures:
+    for i, future in enumerate(futures):
 
         result = future.get(propagate=False, disable_sync_subtasks=False)
 
@@ -197,6 +203,8 @@ def group_run(task_func, params, ret_type=int):
 
         elif isinstance(result, ret_type):
             results.append(result)
+     
+        logger.info(f"task_trendm finish {i+1} of {n_task} tasks", not_db=True)
 
     return results
 #endregion

@@ -5,7 +5,7 @@ class TaskChecker:
 
     def __init__(self, today):
 
-        self.max_detreminated          = 3000
+        self.max_detreminated          = 2000
         self.max_analysis              = 800
         self.max_analysis_per_category = 20
 

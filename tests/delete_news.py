@@ -1,5 +1,6 @@
 import pyrootutils
 DIR_ROOT = pyrootutils.setup_root(__file__)
+import sys; sys.path.append("/app")
 
 from tqdm import tqdm
 from datetime import datetime 
@@ -17,12 +18,11 @@ def delete_news(news):
     return news.id
 
 
-
-
-
-list_news = list(filter(
-    lambda news: not TrendMArticle.select().where(TrendMArticle.news==news).exists(),
-    News.select().where(News.date_get != datetime.strptime("2023-08-23", '%Y-%m-%d'))))
+list_news = []
+# for news in tqdm(list(News.select().where(News.date_get != datetime.strptime("2023-08-31", '%Y-%m-%d')))):
+for news in tqdm(list(News.select())):
+    if not TrendMArticle.select().where(TrendMArticle.news==news).exists():
+        list_news.append(news)
 
 for news in tqdm(list_news):
     delete_news(news)

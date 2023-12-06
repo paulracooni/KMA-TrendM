@@ -18,6 +18,9 @@ services:
     image: 'redis:alpine'
     container_name: trendm-redis
     hostname: redis
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: "redis-server /usr/local/etc/redis/redis.conf"
     networks:
       - live
 

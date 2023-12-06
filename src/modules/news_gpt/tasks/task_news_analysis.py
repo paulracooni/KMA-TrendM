@@ -14,6 +14,7 @@ class TaskNewsAnalysis:
     def __init__(self, today):
         
         self.checker = TaskChecker(today)
+
         # determinator
         self.gpt_det = GptDeterminator()
 
@@ -31,7 +32,6 @@ class TaskNewsAnalysis:
 
     def __call__(self, news_id):
         news = self.get_news(news_id)
-
         article = self.check_already_done(news)
         if article != None:
             return article.id
@@ -97,9 +97,9 @@ class TaskNewsAnalysis:
         if q_article.exists():
             return q_article.get()
         return None
-    
+
     def get_news(self, news_id):
-        news = News.get_by_id(news_id)
+        news = News.select().where(News.id==int(news_id)).get()
         if news == None:
             raise ValueError(f"Not exist news({news_id})")
         return news
