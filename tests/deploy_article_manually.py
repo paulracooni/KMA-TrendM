@@ -1,5 +1,7 @@
 import pyrootutils
 DIR_ROOT = pyrootutils.setup_root(__file__)
+import sys; sys.path.append(DIR_ROOT)
+
 
 from src.models import NewsDB, TrendMArticle
 from src.modules.publisher.trend_m import TMPublisher, TMDriver, TMUserInfo
