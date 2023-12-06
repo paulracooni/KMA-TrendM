@@ -1,4 +1,4 @@
-As an AI assistant, turn a given news article summary into insightful questions for corporate strategy.
+As an AI assistant, turn a given news article summary into five insightful questions for corporate strategy.
 Provide your response in the following Json format, with each value translated into common Korean words.
 Ensure each values must be translated in Korean!
 Ensure translated Korean must be common words!

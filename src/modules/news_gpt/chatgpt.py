@@ -40,7 +40,7 @@ class ChatGPT:
     emb_model = 'text-embedding-ada-002'
     price_emb = 0.0000001
 
-    gpt_model  = "gpt-3.5-turbo"
+    gpt_model  = "gpt-3.5-turbo-1106"
     max_token  = 4097
     price_in   = 0.0000015
     pricce_out = 0.000002
@@ -66,7 +66,7 @@ class ChatGPT:
 
 #region GPT single request process
     # @retry(tries=1, delay=0)
-    def __call__(self, input_data):
+    def __call__(self, input_data, return_as_content=False):
 
         user_prompt, news = self.prep_user_prompt(input_data)
 
@@ -76,7 +76,9 @@ class ChatGPT:
         st = time()
         content, usage = self.run(user_prompt, news)
         content, usage = self.check_content(content, usage, news)
-
+        if return_as_content:
+            return content, usage
+        
         logger.info(
             f"{self.provider} End - Success",
             data=dict(usage=usage, news_id=news.id, exec_time=time() - st))
@@ -118,8 +120,8 @@ class ChatGPT:
     @classmethod
     @retry(exceptions=(APIError, ServiceUnavailableError), tries=5, delay=5)
     @retry(exceptions=RateLimitError, tries=2, delay=60)
-    def create_completion(cls, system_prompt, user_prompt):
-        return openai.ChatCompletion.create(
+    def create_completion(cls, system_prompt, user_prompt, json_format=False):
+        param = dict(
             model=cls.gpt_model,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -127,6 +129,10 @@ class ChatGPT:
             ],
             temperature = cls.temperature,
         )
+        if json_format:
+            param['response_format'] = {"type": "json_object"}
+    
+        return openai.ChatCompletion.create(**param)
         
     @classmethod
     def as_content_and_usage(cls, response):

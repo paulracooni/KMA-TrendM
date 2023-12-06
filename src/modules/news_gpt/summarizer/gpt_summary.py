@@ -5,11 +5,11 @@ from src.utils.logger import DbLogger
 logger = DbLogger(__name__.split(".")[-1])
 
 class GptSummary(ChatGPT):
-    __version__ = "230723"
+    __version__ = "231206"
 
     sys_prompt_chunk = get_prompt(__file__, "SYS_V2_SUMMARIZE_CHUNK")
     sys_prompt_full  = get_prompt(__file__, "SYS_V2_SUMMARIZE_FULL")
-    min_len = 300
+    min_len = 100 #300
     max_len = 2000
     @property
     def provider(self):

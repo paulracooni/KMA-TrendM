@@ -12,7 +12,7 @@ from celery.schedules import crontab
 
 from src.utils import Env
 from src.utils.logger import DbLogger
-from src.modules import Deduplicator, DupRemover
+from src.modules import Deduplicator, DupRemover, KeywordFilter
 from src.modules.news_crawlers import GoogleNewsCrawler, NaverNewsCrawler
 from src.modules.news_gpt.tasks import TaskNewsAnalysis
 from src.modules.publisher.trend_m import TMUserInfo, TMPublisher
@@ -28,6 +28,8 @@ def read_keywords():
             keyword.replace("\n", "")
             for keyword in f.readlines() ]
     return keywords
+
+
 
 def read_topics():
     path_txt = DIR_ROOT / "data/input/topics.txt"
@@ -74,6 +76,11 @@ def crawling_news_kr(self, keyword, max_results=5):
     crawler = NaverNewsCrawler(max_results=max_results)
     saved_news = crawler(keyword)
     return [news.id for news in saved_news]
+
+@celery.task(name="filtering_news", bind=True)
+def filtering_news(self, news_ids):
+    filter_by_keywords = KeywordFilter()
+    return filter_by_keywords(news_ids)
 
 @celery.task(name="remove_dup_news", bind=True)
 def remove_dup_news(self, today=None):
@@ -124,22 +131,24 @@ def task_trendm(self, ):
     logger.info(f"task_trendm start crawlng task", not_db=True)
     task_collect_kr = groupping(crawling_news_kr, read_keywords(), str)
     res_tc_kr = task_collect_kr().join(**params)
-    # res_tc_kr = task_collect_kr.delay()
-    # res_tc_kr = res_tc_kr.join_native(**params)
 
-    # res_tc_en = group_run(crawling_news_en, read_topics(), int)
-    task_collect_en = groupping(crawling_news_en, read_topics(), str)
-    res_tc_en = task_collect_en().join(**params)
-    # res_tc_en = task_collect_en.delay()
-    # res_tc_en = res_tc_en.join_native(**params)
+    # 해외 뉴스는 제외, 한국어 뉴스만 수집
+    # TODO: 추후 TRENDHUNTER 뉴스로 수집 예정
+    # task_collect_en = groupping(crawling_news_en, read_topics(), str)
+    # res_tc_en = task_collect_en().join(**params)
 
+    # Filtering news
+    logger.info(f"task_trendm delete need to filter News", not_db=True)
+    task_filtering = groupping(filtering_news, res_collected, list)
+    filtered_ids = flatten_and_filter_type(task_filtering().join(**params), int)
+    
     # Delete duplicated News
     logger.info(f"task_trendm delete duplicated News", not_db=True)
     removed_ids = flatten_and_filter_type(remove_dup_news(today), int)
     
     res_collected = [
-        list(filter(lambda id: id not in removed_ids, news_ids))
-        for news_ids in list(res_tc_en) + list(res_tc_kr)
+        list(filter(lambda id: id not in removed_ids + filtered_ids, news_ids))
+        for news_ids in list(res_tc_kr) # list(res_tc_en) + list(res_tc_kr)
         if isinstance(news_ids, list)
     ]
 
@@ -158,9 +167,6 @@ def task_trendm(self, ):
     logger.info(f"task_trendm analysis news", not_db=True)
     task_analysis = group(*(gpt_analysis.s(news_id, today) for news_id in news_ids ))
     result_ids = flatten_and_filter_type(task_analysis().join(**params), int)
-    # task_analysis = group(*(gpt_analysis.s(news_id, today) for news_id in news_ids ))
-    # result_ids = flatten_and_filter_type(
-        # task_analysis.delay().join_native(**params), int)
 
     # Publish Task
     logger.info(f"task_trendm publish articles", not_db=True)
